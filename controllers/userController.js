@@ -7,6 +7,7 @@ exports.login = async (req, res) => {
     if (!user) {
       return res.status(404).send("User not Found");
     }
+    user.password = undefined;
     res.status(200).json({
       success: true,
       user,
@@ -23,6 +24,7 @@ exports.register = async (req, res) => {
   try {
     const user = new User(req.body);
     await user.save();
+    user.password = undefined;
     res.status(200).json({
       success: true,
       user,
