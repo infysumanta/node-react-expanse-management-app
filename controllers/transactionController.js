@@ -30,3 +30,29 @@ exports.addTransaction = async (req, res) => {
     res.status(500).json(error);
   }
 };
+
+exports.editTransaction = async (req, res) => {
+  try {
+    await Transaction.findOneAndUpdate(
+      { _id: req.body.transactionId },
+      req.body.payload
+    );
+    res.status(201).send("Transaction Updated");
+  } catch (error) {
+    console.log(error);
+    res.status(500).json(error);
+  }
+};
+
+exports.deleteTransaction = async (req, res) => {
+  console.log(req.body);
+  try {
+    const deleted = await Transaction.findOneAndDelete({
+      _id: req.body.transactionId,
+    });
+    res.status(201).send("Transaction Deleted");
+  } catch (error) {
+    console.log(error);
+    res.status(500).json(error);
+  }
+};

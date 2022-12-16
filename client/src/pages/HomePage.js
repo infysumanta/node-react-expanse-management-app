@@ -1,9 +1,16 @@
 import { Form, Modal, Input, Select, message, Table, DatePicker } from "antd";
+import {
+  UnorderedListOutlined,
+  AreaChartOutlined,
+  EditOutlined,
+  DeleteOutlined,
+} from "@ant-design/icons";
 import React, { useEffect, useState } from "react";
 import Layout from "../components/Layout/Layout";
 import axios from "axios";
 import Spinner from "../components/Spinner";
 import moment from "moment";
+import Charts from "../components/Charts";
 
 const { RangePicker } = DatePicker;
 
@@ -14,23 +21,57 @@ const HomePage = () => {
   const [frequency, setFrequency] = useState("7");
   const [selectDate, setSelectDate] = useState([]);
   const [type, setType] = useState("all");
+  const [viewData, setViewData] = useState("table");
+  const [editable, setEditable] = useState(null);
   const handleSubmit = async (values) => {
     try {
       setLoading(true);
       const user = JSON.parse(localStorage.getItem("user"));
-      await axios.post("/transaction/add-transaction", {
-        ...values,
-        userId: user._id,
-      });
-      message.success("Transaction Added Successfully!!");
-      setLoading(false);
-      setShowModal(false);
+      if (editable) {
+        await axios.put("/transaction/edit-transaction", {
+          payload: {
+            ...values,
+            userId: user._id,
+          },
+          transactionId: editable._id,
+        });
+        message.success("Transaction Updated Successfully!!");
+        setLoading(false);
+        setShowModal(false);
+      } else {
+        await axios.post("/transaction/add-transaction", {
+          ...values,
+          userId: user._id,
+        });
+        message.success("Transaction Added Successfully!!");
+        setLoading(false);
+        setShowModal(false);
+      }
     } catch (error) {
       message.error("Failed to Add Transaction");
       setLoading(false);
       setShowModal(false);
     }
   };
+
+  const deleteTransaction = async (record) => {
+    try {
+      const data = await axios.post("/transaction/delete-transaction", {
+        transactionId: record._id,
+      });
+      message.success("Transaction Deleted Successfully!!");
+      setLoading(false);
+    } catch (error) {
+      message.error("Failed to Delete Transaction");
+      setLoading(false);
+    }
+  };
+
+  // useEffect(() => {
+  //   if (!showModal) {
+  //     setEditable(null);
+  //   }
+  // }, [showModal]);
 
   const columns = [
     {
@@ -56,6 +97,25 @@ const HomePage = () => {
     },
     {
       title: "Action",
+      render: (text, record) => (
+        <div>
+          <EditOutlined
+            className="mx-2"
+            onClick={() => {
+              setEditable(record);
+              setShowModal(true);
+            }}
+          />
+          <DeleteOutlined
+            className="
+            mx-2
+          "
+            onClick={() => {
+              deleteTransaction(record);
+            }}
+          />
+        </div>
+      ),
     },
   ];
 
@@ -69,7 +129,6 @@ const HomePage = () => {
         selectDate,
         type,
       });
-      console.log(res);
       setAllTransaction(res.data);
       setLoading(false);
     } catch (error) {
@@ -109,12 +168,20 @@ const HomePage = () => {
             <Select.Option value="income">Income</Select.Option>
             <Select.Option value="expense">Expense</Select.Option>
           </Select>
-          {frequency === "custom" && (
-            <RangePicker
-              value={selectDate}
-              onChange={(values) => setSelectDate(values)}
-            />
-          )}
+        </div>
+        <div className="switch-icon">
+          <UnorderedListOutlined
+            className={`mx-2 ${
+              viewData === "table" ? "active-icon" : "inactive-icon"
+            }`}
+            onClick={() => setViewData("table")}
+          />
+          <AreaChartOutlined
+            className={`mx-2 ${
+              viewData === "chart" ? "active-icon" : "inactive-icon"
+            }`}
+            onClick={() => setViewData("chart")}
+          />
         </div>
         <div>
           <button
@@ -126,15 +193,23 @@ const HomePage = () => {
         </div>
       </div>
       <div className="content">
-        <Table columns={columns} dataSource={allTransaction} />
+        {viewData === "table" ? (
+          <Table columns={columns} dataSource={allTransaction} rowKey="_id" />
+        ) : (
+          <Charts allTransaction={allTransaction} />
+        )}
       </div>
       <Modal
-        title="Add Transaction"
+        title={editable ? "Edit Transaction" : "Add Transaction"}
         open={showModal}
         onCancel={() => setShowModal(false)}
         footer={null}
       >
-        <Form layout="vertical" onFinish={handleSubmit}>
+        <Form
+          layout="vertical"
+          onFinish={handleSubmit}
+          initialValues={editable}
+        >
           <Form.Item label="Amount" name="amount">
             <Input type="text" />
           </Form.Item>
@@ -146,8 +221,8 @@ const HomePage = () => {
           </Form.Item>
           <Form.Item label="Category" name="category">
             <Select>
-              <Select.Option value="income">Salary</Select.Option>
-              <Select.Option value="top">Tip</Select.Option>
+              <Select.Option value="salary">Salary</Select.Option>
+              <Select.Option value="tip">Tip</Select.Option>
               <Select.Option value="project">Project</Select.Option>
               <Select.Option value="food">Food</Select.Option>
               <Select.Option value="movie">Movie</Select.Option>
