@@ -22,7 +22,7 @@ const Header = () => {
     <nav className="navbar navbar-expand-lg bg-light">
       <div className="container-fluid">
         <button
-          class="navbar-toggler"
+          className="navbar-toggler"
           type="button"
           data-bs-toggle="collapse"
           data-bs-target="#navbarTogglerDemo01"
@@ -32,8 +32,8 @@ const Header = () => {
         >
           <span className="navbar-toggler-icon"></span>
         </button>
-        <div class="collapse navbar-collapse" id="navbarTogglerDemo01">
-          <Link class="navbar-brand" to="/">
+        <div className="collapse navbar-collapse" id="navbarTogglerDemo01">
+          <Link className="navbar-brand" to="/">
             Expanse Management
           </Link>
           <ul className="navbar-nav ms-auto mb-2 mb-lg-0">
